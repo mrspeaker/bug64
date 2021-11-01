@@ -116,11 +116,11 @@ irq:
 
             clc
             lda player_x
-            adc #[24-12]
+            adc #[24]
             sta $d000
             clc
             lda player_y
-            adc #[50-12]
+            adc #[50]
             sta $d001
 
 handle_joy:
@@ -154,43 +154,27 @@ fire:
             bcs !+
             // fire!
 !:
-
             // Move character with map collisions
 
-            // get player x
-            // add xo
-            // check if (xo, player_y) is in wall.
-            // if so,  set xo = 0
-            clc
-            lda player_y
-            adc yo
-            lsr // div 8
-            lsr
-            lsr
-            tax
-            lda tile_for_cell,x
-            asl
-            asl
-            asl
-            asl     // * 16 = y offset.
-            sta tmpYO
-
-            clc
-            lda player_x
-            adc xo
-            lsr
-            lsr
-            lsr
-            tax
-            lda tile_for_cell,x // tile for xo
-            clc
-            adc tmpYO
-            tax
-            lda tile_map_data,x
+            lda yo
             beq !+
+            sta player_y_dir
             lda #0
+            sta player_x_dir
+!:
+            lda xo
+            beq !+
+            sta player_x_dir
+            lda #0
+            sta player_y_dir
+!:
+
+            lda player_x_dir
             sta xo
+            lda player_y_dir
             sta yo
+
+
 
 
 !:
@@ -223,6 +207,8 @@ draw_sprites:
 
 player_x:   .byte $3*8, 0
 player_y:   .byte $3*8
+player_x_dir:.byte 0
+player_y_dir:.byte 1
 
 // SCREEN_ROW_LSB:
 //             .fill 25, <[SCREEN + i * 40]
