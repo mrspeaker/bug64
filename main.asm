@@ -104,7 +104,6 @@ init_sprites:
             sta $d015
             rts
 
-
 irq:
             pha
             txa
@@ -115,42 +114,63 @@ irq:
             asl $d019
             dec $d020
 
+            jsr handle_joy
+            jsr move_player
+
+            // Set player sprite
             clc
             lda player_x
             adc #[24]
             sta $d000
+            lda player_x + 1
+            adc #0
+            sta $d010
+
             clc
             lda player_y
             adc #[50]
             sta $d001
 
 
-handle_joy:
-            .label xo = TMP1
-            .label yo = TMP2
+            inc $d020
+            pla
+            tay
+            pla
+            tax
+            pla
+            rti
 
+
+handle_joy:
             // rotate down the byte, checking lowest bit (active low)
             lda $dc00 // 0=up,1=down,2=left,3=right,4=fire
+!up:
             lsr
-            bcs down
+            bcs !down+
             ldx #%0001
             stx player_dir
-down:
+!down:
             lsr
-            bcs left
+            bcs !left+
             ldx #%0010
             stx player_dir
-left:
+!left:
             lsr
-            bcs right
+            bcs !right+
             ldx #%0100
             stx player_dir
-right:
+!right:
             lsr
-            bcs done_joy
+            bcs _done_joy
             ldx #%1000
             stx player_dir
-done_joy:
+_done_joy:
+            rts
+
+
+move_player:
+            .label xo = TMP1
+            .label yo = TMP2
 
             lda #0
             sta xo
@@ -160,51 +180,64 @@ done_joy:
             lda timer
             adc #8
             sta timer
-            bne no_update
+            bne _no_update
 
             lda player_dir
-dir_up:
+!up:
             lsr
-            bcc dir_down
+            bcc !down+
             ldx #-TILE_SIZE
             stx yo
-dir_down:
+!down:
             lsr
-            bcc dir_left
+            bcc !left+
             ldx #TILE_SIZE
             stx yo
-dir_left:
+!left:
             lsr
-            bcc dir_right
+            bcc !right+
             ldx #-TILE_SIZE
             stx xo
-dir_right:
+!right:
             lsr
-            bcc no_update
+            bcc _no_update
             ldx #TILE_SIZE
             stx xo
 
-no_update:
+_no_update:
+            // TODO: this must be the worst way to
+            // add signed byte to unsigned 16-bit number.
+            // fix it!
 
-draw_sprites:
             // add xo and yo
+            lda xo
+            beq _done_add
+            bmi _sub_x
+            // pos x
             clc
             lda player_x
-            adc xo
+            adc #TILE_SIZE
             sta player_x
+            lda player_x + 1
+            adc #0
+            sta player_x + 1
+            jmp _done_add
+_sub_x:
+            sec
+            lda player_x
+            sbc #TILE_SIZE
+            sta player_x
+            lda player_x + 1
+            sbc #0
+            sta player_x + 1
+_done_add:
 
             clc
             lda player_y
             adc yo
             sta player_y
 
-            inc $d020
-            pla
-            tay
-            pla
-            tax
-            pla
-            rti
+            rts
 
 
 player_x:   .byte $3*8, 0
