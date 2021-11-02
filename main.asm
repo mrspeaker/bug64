@@ -128,41 +128,28 @@ irq:
 handle_joy:
             .label xo = TMP1
             .label yo = TMP2
-            .label tmpYO = TMP3
 
             // rotate down the byte, checking lowest bit (active low)
             lda $dc00 // 0=up,1=down,2=left,3=right,4=fire
             lsr
             bcs down
-            ldx #%0010
-            stx player_y_dir
-            ldx #0
-            stx player_x_dir
-            jmp done_joy
+            ldx #%0001
+            stx player_dir
 down:
             lsr
             bcs left
-            ldx #%0001
-            stx player_y_dir
-            ldx #0
-            stx player_x_dir
-            jmp done_joy
+            ldx #%0010
+            stx player_dir
 left:
             lsr
             bcs right
-            ldx #%0010
-            stx player_x_dir
-            ldx #0
-            stx player_y_dir
-            jmp done_joy
+            ldx #%0100
+            stx player_dir
 right:
             lsr
             bcs done_joy
-            ldx #%0001
-            stx player_x_dir
-            ldx #0
-            stx player_y_dir
-
+            ldx #%1000
+            stx player_dir
 done_joy:
 
             lda #0
@@ -175,34 +162,27 @@ done_joy:
             sta timer
             bne no_update
 
-            lda player_y_dir
-            beq dir_left
+            lda player_dir
+dir_up:
             lsr
             bcc dir_down
-            // up
-            ldx #TILE_SIZE
+            ldx #-TILE_SIZE
             stx yo
-            jmp no_update
 dir_down:
             lsr
             bcc dir_left
-            ldx #-TILE_SIZE
+            ldx #TILE_SIZE
             stx yo
-            jmp no_update
 dir_left:
-            lda player_x_dir
-            beq no_update
             lsr
-            bcs dir_right
+            bcc dir_right
             ldx #-TILE_SIZE
             stx xo
-            jmp no_update
 dir_right:
             lsr
-            bcs no_update
+            bcc no_update
             ldx #TILE_SIZE
             stx xo
-
 
 no_update:
 
@@ -229,8 +209,8 @@ draw_sprites:
 
 player_x:   .byte $3*8, 0
 player_y:   .byte $3*8
-player_x_dir:.byte 0
-player_y_dir:.byte 0
+player_dir: .byte 0
+
 timer: .byte 0
 // SCREEN_ROW_LSB:
 //             .fill 25, <[SCREEN + i * 40]
