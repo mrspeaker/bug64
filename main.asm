@@ -282,8 +282,6 @@ timer: .byte 0
 // SCREEN_ROW_MSB:
                     //             .fill 25, >[SCREEN + i * 40]
 
-tile_for_cell: .byte 0,0,0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,10,10,10,11,11,11,12,12,12,13,13,13
-
 // TILE SET DATA : 6 (2x2) tiles : total size is 24 ($0018) bytes.
 
 //* =  ADDR_TILESET_DATA "tileset_data"
