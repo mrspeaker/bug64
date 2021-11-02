@@ -200,11 +200,11 @@ move_player:
             stx xo
 !right:
             lsr
-            bcc _no_update
+            bcc check_col
             ldx #1
             stx xo
 
-_no_update:
+check_col:
             // can move to this xo + yo?
             clc
             lda player_ty
@@ -220,8 +220,13 @@ _no_update:
             // check tile.
             tax
             lda tile_map_data, x
-            bne _no_store
-
+            beq no_col
+            // Hit a wall.
+            rts
+no_col:
+            // but what did we hit?
+            lda #$1
+            sta SCREEN,x
 
             // add xo and yo
             lda xo
@@ -250,23 +255,21 @@ _sub_x:
             sta player_x + 1
 _done_x:
             lda yo
-            beq _no_store
+            beq _done_y
             bmi _sub_y
             inc player_ty
             clc
             lda player_y
             adc #TILE_SIZE
             sta player_y
-            jmp !+
+            jmp _done_y
 _sub_y:
             dec player_ty
             sec
             lda player_y
             sbc #TILE_SIZE
             sta player_y
-!:
-_no_store:
-
+_done_y:
             rts
 
 
