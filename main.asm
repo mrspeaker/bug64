@@ -3,10 +3,11 @@
             .label SZ_CHARSET_DATA         = 2048
             .label COLOUR_CHAR_MC1 = 11
             .label COLOUR_CHAR_MC2 = 14
+
             .label TILE_COUNT = 5
             .label TILE_COLS = 13
             .label TILE_ROWS = 8
-            .const NUM_TILES = TILE_COLS * TILE_ROWS
+            .label TILE_SIZE = 24
 
             .const VIC_BASE                = $c000
             .const SCREEN                  = VIC_BASE + $0
@@ -123,68 +124,89 @@ irq:
             adc #[50]
             sta $d001
 
+
 handle_joy:
             .label xo = TMP1
             .label yo = TMP2
             .label tmpYO = TMP3
 
-            lda #0
-            sta xo
-            sta yo
-
-            // rotate down the byte, checking lowest bit
+            // rotate down the byte, checking lowest bit (active low)
             lda $dc00 // 0=up,1=down,2=left,3=right,4=fire
-            lsr     // if bit 0 was 0 (active low!), carry will be clear
+            lsr
             bcs down
-            dec yo
+            ldx #%0010
+            stx player_y_dir
+            ldx #0
+            stx player_x_dir
+            jmp done_joy
 down:
             lsr
             bcs left
-            inc yo
+            ldx #%0001
+            stx player_y_dir
+            ldx #0
+            stx player_x_dir
+            jmp done_joy
 left:
             lsr
             bcs right
-            dec xo
+            ldx #%0010
+            stx player_x_dir
+            ldx #0
+            stx player_y_dir
+            jmp done_joy
 right:
             lsr
-            bcs fire
-            inc xo
-fire:
-            lsr
-            bcs !+
-            // fire!
-!:
-            // Move character with map collisions
+            bcs done_joy
+            ldx #%0001
+            stx player_x_dir
+            ldx #0
+            stx player_y_dir
 
-            lda yo
-            beq !+
-            sta player_y_dir
-            lda #0
-            sta player_x_dir
-!:
-            lda xo
-            beq !+
-            sta player_x_dir
-            lda #0
-            sta player_y_dir
-!:
+done_joy:
 
-            lda player_x_dir
+            lda #0
             sta xo
-            lda player_y_dir
             sta yo
 
+            clc
+            lda timer
+            adc #8
+            sta timer
+            bne no_update
+
+            lda player_y_dir
+            beq dir_left
+            lsr
+            bcc dir_down
+            // up
+            ldx #TILE_SIZE
+            stx yo
+            jmp no_update
+dir_down:
+            lsr
+            bcc dir_left
+            ldx #-TILE_SIZE
+            stx yo
+            jmp no_update
+dir_left:
+            lda player_x_dir
+            beq no_update
+            lsr
+            bcs dir_right
+            ldx #-TILE_SIZE
+            stx xo
+            jmp no_update
+dir_right:
+            lsr
+            bcs no_update
+            ldx #TILE_SIZE
+            stx xo
 
 
-
-!:
+no_update:
 
 draw_sprites:
-            // get player y
-            // add yo
-            // check if (xo, yo) is in wall
-            // if so, set yo = 0
-
             // add xo and yo
             clc
             lda player_x
@@ -208,8 +230,8 @@ draw_sprites:
 player_x:   .byte $3*8, 0
 player_y:   .byte $3*8
 player_x_dir:.byte 0
-player_y_dir:.byte 1
-
+player_y_dir:.byte 0
+timer: .byte 0
 // SCREEN_ROW_LSB:
 //             .fill 25, <[SCREEN + i * 40]
 // SCREEN_ROW_MSB:
