@@ -167,11 +167,9 @@ handle_joy:
 _done_joy:
             rts
 
-
 move_player:
             .label xo = TMP1
             .label yo = TMP2
-
             lda #0
             sta xo
             sta yo
@@ -180,40 +178,59 @@ move_player:
             lda timer
             adc #8
             sta timer
-            bne _no_update
+            beq !+
+            rts
+!:
 
             lda player_dir
 !up:
             lsr
             bcc !down+
-            ldx #-TILE_SIZE
+            ldx #-1
             stx yo
 !down:
             lsr
             bcc !left+
-            ldx #TILE_SIZE
+            ldx #1
             stx yo
 !left:
             lsr
             bcc !right+
-            ldx #-TILE_SIZE
+            ldx #-1
             stx xo
 !right:
             lsr
             bcc _no_update
-            ldx #TILE_SIZE
+            ldx #1
             stx xo
 
 _no_update:
-            // TODO: this must be the worst way to
-            // add signed byte to unsigned 16-bit number.
-            // fix it!
+            // can move to this xo + yo?
+            clc
+            lda player_ty
+            adc yo
+            // multiply by 16
+            asl
+            asl
+            asl
+            asl
+            // plyaer_tx
+            adc player_tx
+            adc xo
+            // check tile.
+            tax
+            lda tile_map_data, x
+            bne _no_store
+
 
             // add xo and yo
             lda xo
-            beq _done_add
+            beq _done_x
             bmi _sub_x
             // pos x
+
+
+            inc player_tx
             clc
             lda player_x
             adc #TILE_SIZE
@@ -221,8 +238,9 @@ _no_update:
             lda player_x + 1
             adc #0
             sta player_x + 1
-            jmp _done_add
+            jmp _done_x
 _sub_x:
+            dec player_tx
             sec
             lda player_x
             sbc #TILE_SIZE
@@ -230,19 +248,33 @@ _sub_x:
             lda player_x + 1
             sbc #0
             sta player_x + 1
-_done_add:
-
+_done_x:
+            lda yo
+            beq _no_store
+            bmi _sub_y
+            inc player_ty
             clc
             lda player_y
-            adc yo
+            adc #TILE_SIZE
             sta player_y
+            jmp !+
+_sub_y:
+            dec player_ty
+            sec
+            lda player_y
+            sbc #TILE_SIZE
+            sta player_y
+!:
+_no_store:
 
             rts
 
 
-player_x:   .byte $3*8, 0
-player_y:   .byte $3*8
+player_x:   .byte [1*3*8], 0
+player_y:   .byte [2*3*8]
 player_dir: .byte 0
+player_tx:  .byte $1
+player_ty:  .byte $2
 
 timer: .byte 0
 // SCREEN_ROW_LSB:
