@@ -224,9 +224,24 @@ check_col:
             // Hit a wall.
             rts
 no_col:
+
+            lda #<SCREEN
+            sta scr + 1
+            lda #>SCREEN
+            sta scr + 2
+
             // but what did we hit?
-            lda #$1
-            sta SCREEN,x
+            clc
+            lda scr + 1
+            adc mid_pos_lo, x
+            sta scr + 1
+            lda scr + 2
+            adc mid_pos_hi, x
+            sta scr + 2
+
+            lda #0
+scr:
+            sta $BEEF
 
             // add xo and yo
             lda xo
@@ -284,6 +299,27 @@ timer: .byte 0
 //             .fill 25, <[SCREEN + i * 40]
 // SCREEN_ROW_MSB:
                     //             .fill 25, >[SCREEN + i * 40]
+
+       // TODO: fiill it properly!
+mid_pos_lo:
+            .fill 16, i*3 + 40 * 1 + 1
+            .fill 16, i*3 + 40 * 4 + 1
+            .fill 16, i*3 + 40 * 7 + 1
+            .fill 16, i*3 + 40 * 4 - 15
+            .fill 16, i*3 + 40 * 7 - 15
+            .fill 16, i*3 + 40 * 3 + 9
+            .fill 16, i*3 + 40 * 6 + 9
+            .fill 16, i*3 + 40
+mid_pos_hi:
+   .fill 16, 0
+   .fill 16, 0
+   .fill 16, 1
+   .fill 16, 1
+   .fill 16, 2
+   .fill 16, 2
+   .byte 2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3
+   .fill 16, 3
+
 
 // TILE SET DATA : 6 (2x2) tiles : total size is 24 ($0018) bytes.
 
