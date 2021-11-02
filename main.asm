@@ -176,9 +176,9 @@ move_player:
 
             clc
             lda timer
-            adc #8
+            adc #18
             sta timer
-            beq !+
+            bcs !+
             rts
 !:
 
@@ -214,7 +214,7 @@ _no_update:
             asl
             asl
             asl
-            // plyaer_tx
+            // player_tx
             adc player_tx
             adc xo
             // check tile.
