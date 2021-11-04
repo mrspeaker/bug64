@@ -308,28 +308,28 @@ function move_arrow_forward()
   local n_tile=mget(ax+xo,ay)
   if is_maze(n_tile) then
   	adir=d_right
-  	xo=1
+  	xo=0
   end
  elseif adir==d_right then
  	xo=1
  	local n_tile=mget(ax+xo,ay)
   if is_maze(n_tile) then
   	adir=d_left
-  	xo=-1
+  	xo=0
   end
  elseif adir==d_up then
   yo=-1
   local n_tile=mget(ax,ay+yo)
   if is_maze(n_tile) then
   	adir=d_down
-  	yo=1
+  	yo=0
   end
  else
  	yo=1
  	local n_tile=mget(ax,ay+yo)
   if is_maze(n_tile) then
   	adir=d_up
-  	yo=-1
+  	yo=0
   end
  end
  ax+=xo
