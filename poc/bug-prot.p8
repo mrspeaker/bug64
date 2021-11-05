@@ -6,8 +6,9 @@ d_down=2
 d_left=4
 d_right=8
 
-tm=0
+tm=8
 ta=0
+
 function _update()
  tm+=1
  pxo+=pxd
