@@ -1,0 +1,8 @@
+* grid-snapping movement
+
+- snap to grid
+- never "overshoot" turns (if spd is large)
+- immediate double-back
+- adjustable speed per entitiy (not int speeds)
+- if holding down turn, do turn
+- change-dir forgiveness?
