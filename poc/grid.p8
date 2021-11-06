@@ -12,26 +12,19 @@ function _init()
 end
 
 function _update60()
+ //p.cx=0
+ //p.cy=0
+ if btn(⬅️) then p.cx=-1 end
+ if btn(➡️) then p.cx=1 end
+ if btn(⬆️) then p.cy=-1 end
+	if btn(⬇️) then p.cy=1 end
 
- if btn(⬅️) then p.cx=-1
-	elseif btn(➡️) then p.cx=1
-	else p.cx=0
-	end
- if p.cx==0 then
-  if btn(⬆️) then p.cy=-1
-	 elseif btn(⬇️) then p.cy=1
-	 else p.cy=0
-	 end
-	else
-	 p.cy=0
- end
-
- update_e(p)
+	update_e(p)
  for e in all(es) do
-  ai(e)
-	 update_e(e)
-	 e.cx=0
-	 e.cy=0
+		ai(e)
+		update_e(e)
+		e.cx=0
+		e.cy=0
 	end
 end
 
@@ -39,7 +32,7 @@ function ai(e)
  e.cx=flr(rnd(3)-1)
  e.cy=flr(rnd(3)-1)
  if e.cx!=0 and e.cy!=0 then
- 	e.cx=0
+ //	e.cx=0
  end
 end
 
@@ -53,6 +46,7 @@ function _draw()
  if #es>0 and p.tx==es[1].tx then
  	rect(p.tx*8,p.ty*8,p.tx*8+8,p.ty*8+8,10)
  end
+ msg=(p.dx==0and"0"or"1")..":"..p.dy..":"..p.cx..":"..p.cy
  print(msg,1,1,1)
 end
 -->8
@@ -66,6 +60,8 @@ function new_e(tx,ty,spd)
 	e.yo=0
 	e.dx=0
 	e.dy=0
+  e.dxo=0
+  e.dyo=0
 	e.cx=0
 	e.cy=0
 
@@ -75,32 +71,53 @@ function new_e(tx,ty,spd)
 end
 
 function draw_e(e)
- rect(e.tx*8,e.ty*8,e.tx*8+7,e.ty*8+7,2)
+ //rect(e.tx*8,e.ty*8,e.tx*8+7,e.ty*8+7,2)
 	spr(e.fr,e.tx*8+e.xo,e.ty*8+e.yo)
 end
 
 function update_e(e)
  local ntx=e.tx+(e.dx==0and 0 or sgn(e.dx))
  local nty=e.ty+(e.dy==0and 0 or sgn(e.dy))
- 
+
  local can_steer=e.dx==0 and e.dy==0
  if can_steer then
   if e.cx==0 and e.cy==0 then
    e.xo=0
    e.yo=0
   else
-   local ntx=e.tx+(e.cx==0and 0 or sgn(e.cx))
-   local nty=e.ty+(e.cy==0and 0 or sgn(e.cy))
+   if e.cx!=0 and e.cy!= 0 then
+    // who wins?
+    if e.dxo!=0 then
+      // was going horiz...
+      // can it now go down?
+      // if so, stop horiz.
+      // otherwise... keep trucking.
+    end
+    if e.dyo!=0 then
+       // was going vert
+    end
+    e.cy=0
+   end
+   local xo=0
+   local yo=0
 
-   // check if e.cx/e.cy ok.
-   if mget(ntx,nty)==0 then
-    if e.cx!=0 then
-	  	  e.dx=e.spd*sgn(e.cx)
-  	 end
-    if e.cy!=0 then
-  	  e.dy=e.spd*sgn(e.cy)
-  	 end
-  	end
+   // check horizontal
+   if mget(e.tx+e.cx,e.ty)==0 then
+    xo=e.cx
+   end
+   // check vertical
+   if mget(e.tx+xo,e.ty+e.cy)==0 then
+    yo=e.cy
+   end
+   // can move?
+   if xo==0 and yo==0 then
+    e.cx=0
+    e.cy=0
+   end
+
+   e.dx=e.spd*xo
+   e.dy=e.spd*yo
+
   end
 	end
 
@@ -109,6 +126,7 @@ function update_e(e)
 		if abs(e.xo)>=8 then
 			e.tx+=1*sgn(e.dx)
 			e.xo+=-8*sgn(e.dx)
+      e.dxo=e.dx
 			e.dx=0
 		end
 	end
@@ -118,6 +136,7 @@ function update_e(e)
 		if abs(e.yo)>=8 then
 			e.ty+=1*sgn(e.dy)
 			e.yo+=-8*sgn(e.dy)
+      e.dyo=e.dy
 			e.dy=0
 		end
 	end
