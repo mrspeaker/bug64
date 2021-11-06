@@ -41,6 +41,10 @@ function ai(e)
  end
 end
 
+function ok_move(x,y)
+  return mget(x,y)==0
+end
+
 function _draw()
  cls()
  map(0,0)
@@ -99,44 +103,83 @@ end
 function update_e(e)
   local can_steer=e.dx==0 and e.dy==0
   local want_steer=e.cx!=0 or e.cy!=0
+<<<<<<< HEAD
  if e==p then dbg[1].a=can_steer end
 
  if can_steer then
   if not want_steer then
    e.xo=0
    e.yo=0
+=======
+  if e==p then dbg[1].a=can_steer end
+
+  -- todo: when change directions, should xo=0/yo=0
+
+ if can_steer then
+  if not want_steer then
+   --e.xo=0
+   --e.yo=0
+>>>>>>> mo change
   else
     local want_both=e.cx!=0 and e.cy!=0
    if want_both then
     -- who wins?
+<<<<<<< HEAD
     if e.dxo!=0 then
+=======
+     if e.dxo!=0 then
+       if ok_move(e.tx,e.ty+sgn(e.cy)) then
+                    e.cx=0
+       end
+>>>>>>> mo change
       -- was going horiz...
       -- can it now go down?
       -- if so, stop horiz.
       -- otherwise... keep trucking.
     end
     if e.dyo!=0 then
+<<<<<<< HEAD
        -- was going vert
+=======
+      -- was going vert
+      if ok_move(e.tx+sgn(e.cy),e.ty) then
+        e.cy=0
+      end
+>>>>>>> mo change
     end
-    e.cy=0
+    --e.cy=0
    end
    local xo=0
    local yo=0
 
    -- check horizontal
+<<<<<<< HEAD
    if mget(e.tx+e.cx,e.ty)==0 then
     xo=e.cx
    end
    -- check vertical
    if mget(e.tx+xo,e.ty+e.cy)==0 then
+=======
+   if ok_move(e.tx+e.cx,e.ty) then
+    xo=e.cx
+   end
+   -- check vertical
+   if ok_move(e.tx+xo,e.ty+e.cy) then
+>>>>>>> mo change
     yo=e.cy
    end
    -- can move?
    local can_move=not (xo==0 and yo==0)
    if e==p then dbg[1].b=can_move end
    if not can_move then
+<<<<<<< HEAD
+=======
+     -- stop requests for move
+>>>>>>> mo change
     e.cx=0
     e.cy=0
+    e.xo=0
+    e.yo=0
    end
 
    e.dx=e.spd*xo
@@ -145,25 +188,38 @@ function update_e(e)
   end
 	end
 
+ -- move x
  if e.dx!=0 then
-		e.xo+=e.dx
-		if abs(e.xo)>=8 then
-			e.tx+=1*sgn(e.dx)
-			e.xo+=-8*sgn(e.dx)
-      e.dxo=e.dx
-			e.dx=0
-		end
-	end
+   e.xo+=e.dx
+   e.yo=0
+   if abs(e.xo)>=8 then
+     e.tx+=1*sgn(e.dx)
+     e.xo+=-8*sgn(e.dx)
+     e.dxo=e.dx
+     e.dx=0
+     -- fix "bounce" pixel
+     if not ok_move(e.tx+sgn(e.xo), e.ty) then
+       e.xo=0
+     end
 
-	if e.dy!=0 then
-		e.yo+=e.dy
-		if abs(e.yo)>=8 then
-			e.ty+=1*sgn(e.dy)
-			e.yo+=-8*sgn(e.dy)
-      e.dyo=e.dy
-			e.dy=0
-		end
-	end
+   end
+
+ end
+ -- move y
+ if e.dy!=0 then
+   e.yo+=e.dy
+   e.xo=0
+   if abs(e.yo)>=8 then
+     e.ty+=1*sgn(e.dy)
+     e.yo+=-8*sgn(e.dy)
+     e.dyo=e.dy
+     e.dy=0
+     -- fix "bounce" pixel
+     if not ok_move(e.tx, e.ty+sgn(e.yo)) then
+       e.yo=0
+     end
+   end
+ end
 
 end
 
