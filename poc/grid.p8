@@ -5,15 +5,20 @@ __lua__
 local es={}
 local p=nil
 local msg=""
+local dbg={{a=true,b=false},{a=nil,b=true}}
 
 function _init()
  p=new_e(1,1,0.77)
  add(es, new_e(10,1,0.57))
 end
 
-function _update60()
- //p.cx=0
- //p.cy=0
+function _update()
+  add(dbg, {a=nil,b=nil}, 1)
+  if #dbg >= 15 then
+   deli(dbg,15)
+  end
+ p.cx=0
+ p.cy=0
  if btn(⬅️) then p.cx=-1 end
  if btn(➡️) then p.cx=1 end
  if btn(⬆️) then p.cy=-1 end
@@ -48,6 +53,22 @@ function _draw()
  end
  msg=(p.dx==0and"0"or"1")..":"..p.dy..":"..p.cx..":"..p.cy
  print(msg,1,1,1)
+ draw_dbg(p)
+end
+
+function draw_dbg(p)
+  local x=p.tx*8+p.xo
+  local y=p.ty*8+p.yo
+  for i=1,#dbg do
+    local d=dbg[i]
+    local j=0
+    for k,v in pairs(d) do
+      if v~=nil then
+        rect(x+j,y-i,x+j,y-i,v and 10 or 3)
+      end
+      j+=1
+    end
+  end
 end
 -->8
 -- entity
@@ -76,41 +97,44 @@ function draw_e(e)
 end
 
 function update_e(e)
- local ntx=e.tx+(e.dx==0and 0 or sgn(e.dx))
- local nty=e.ty+(e.dy==0and 0 or sgn(e.dy))
+  local can_steer=e.dx==0 and e.dy==0
+  local want_steer=e.cx!=0 or e.cy!=0
+ if e==p then dbg[1].a=can_steer end
 
- local can_steer=e.dx==0 and e.dy==0
  if can_steer then
-  if e.cx==0 and e.cy==0 then
+  if not want_steer then
    e.xo=0
    e.yo=0
   else
-   if e.cx!=0 and e.cy!= 0 then
-    // who wins?
+    local want_both=e.cx!=0 and e.cy!=0
+   if want_both then
+    -- who wins?
     if e.dxo!=0 then
-      // was going horiz...
-      // can it now go down?
-      // if so, stop horiz.
-      // otherwise... keep trucking.
+      -- was going horiz...
+      -- can it now go down?
+      -- if so, stop horiz.
+      -- otherwise... keep trucking.
     end
     if e.dyo!=0 then
-       // was going vert
+       -- was going vert
     end
     e.cy=0
    end
    local xo=0
    local yo=0
 
-   // check horizontal
+   -- check horizontal
    if mget(e.tx+e.cx,e.ty)==0 then
     xo=e.cx
    end
-   // check vertical
+   -- check vertical
    if mget(e.tx+xo,e.ty+e.cy)==0 then
     yo=e.cy
    end
-   // can move?
-   if xo==0 and yo==0 then
+   -- can move?
+   local can_move=not (xo==0 and yo==0)
+   if e==p then dbg[1].b=can_move end
+   if not can_move then
     e.cx=0
     e.cy=0
    end

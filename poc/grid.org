@@ -5,4 +5,4 @@
 - immediate double-back
 - adjustable speed per entitiy (not int speeds)
 - if holding down turn, do turn
-- change-dir forgiveness?
+- change-dir forgiveness? (turn a few pixels after)
