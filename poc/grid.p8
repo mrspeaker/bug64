@@ -5,7 +5,7 @@ __lua__
 local es={}
 local p=nil
 local msg=""
-local dbg={{a=true,b=false},{a=nil,b=true}}
+local dbg={}
 
 function _init()
  p=new_e(1,1,0.77)
@@ -13,7 +13,7 @@ function _init()
 end
 
 function _update()
-  add(dbg, {a=nil,b=nil}, 1)
+  add(dbg, {a=nil,b=nil,c=nil,d=nil}, 1)
   if #dbg >= 15 then
    deli(dbg,15)
   end
@@ -68,7 +68,13 @@ function draw_dbg(p)
     local j=0
     for k,v in pairs(d) do
       if v~=nil then
-        rect(x+j,y-i,x+j,y-i,v and 10 or 3)
+        local c
+        if v==-1 then c=2
+        elseif v== 0 or v==false then c = 10
+        elseif v== 1 or v== true then c=3
+        else v=4
+        end
+        rect(x+j*2,y-i,x+j*2,y-i,c)
       end
       j+=1
     end
@@ -100,10 +106,18 @@ function draw_e(e)
 	spr(e.fr,e.tx*8+e.xo,e.ty*8+e.yo)
 end
 
+function sign(n)
+  if n==0 then return 0 end
+  return sgn(n)
+end
+
 function update_e(e)
  local can_steer=e.dx==0 and e.dy==0
  local want_steer=e.cx!=0 or e.cy!=0
  if e==p then dbg[1].a=can_steer end
+ if e==p then dbg[1].c=sign(e.dxo) end
+ if e==p then dbg[1].d=sign(e.dyo) end
+
 
  if can_steer then
   if not want_steer then
@@ -114,12 +128,12 @@ function update_e(e)
    if want_both then
     -- who wins?
     if e.dxo!=0 then
-     if ok_move(e.tx,e.ty+sgn(e.cy)) then
+     if ok_move(e.tx,e.ty+sign(e.cy)) then
       e.cx=0
      end
     end
     if e.dyo!=0 then
-     if ok_move(e.tx+sgn(e.cy),e.ty) then
+     if ok_move(e.tx+sign(e.cy),e.ty) then
       e.cy=0
      end
     end
